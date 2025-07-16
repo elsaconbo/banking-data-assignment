@@ -5,37 +5,24 @@ from datetime import datetime
 import pandas as pd
 import faker
 
-# Khởi tạo Faker
 fake = faker.Faker()
 
-# ────────────────────────────────────────
-# ⚙️ Config số lượng dữ liệu
-# ────────────────────────────────────────
 NUM_CUSTOMERS = 100
 NUM_DEVICES = 80
 NUM_ACCOUNTS = 200
 NUM_TRANSACTIONS = 800
 NUM_AUTH_LOGS = 600
 
-# ────────────────────────────────────────
-# 🔧 Helper functions
-# ────────────────────────────────────────
 def generate_uuid():
     return str(uuid.uuid4())
 
 def random_enum(enum_list):
     return random.choice(enum_list)
 
-# ────────────────────────────────────────
-# 📂 Chuẩn hóa đường dẫn export
-# ────────────────────────────────────────
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))          # src/
-OUTPUT_DIR = os.path.join(BASE_DIR, "..", "data")              # data/
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+OUTPUT_DIR = os.path.join(BASE_DIR, "..", "data")
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 
-# ────────────────────────────────────────
-# 👤 CUSTOMER
-# ────────────────────────────────────────
 customers = []
 for _ in range(NUM_CUSTOMERS):
     customer_id = generate_uuid()
@@ -53,9 +40,6 @@ for _ in range(NUM_CUSTOMERS):
         'created_at': fake.date_time_this_year()
     })
 
-# ────────────────────────────────────────
-# 💻 DEVICE
-# ────────────────────────────────────────
 devices = []
 for _ in range(NUM_DEVICES):
     devices.append({
@@ -65,9 +49,6 @@ for _ in range(NUM_DEVICES):
         'created_at': fake.date_time_this_year()
     })
 
-# ────────────────────────────────────────
-# 💳 ACCOUNT
-# ────────────────────────────────────────
 accounts = []
 for _ in range(NUM_ACCOUNTS):
     customer = random.choice(customers)
@@ -80,9 +61,6 @@ for _ in range(NUM_ACCOUNTS):
         'created_at': fake.date_time_this_year()
     })
 
-# ────────────────────────────────────────
-# 💰 TRANSACTION
-# ────────────────────────────────────────
 transactions = []
 for _ in range(NUM_TRANSACTIONS):
     account = random.choice(accounts)
@@ -98,9 +76,6 @@ for _ in range(NUM_TRANSACTIONS):
         'timestamp': fake.date_time_this_year()
     })
 
-# ────────────────────────────────────────
-# 🔐 AUTH LOG
-# ────────────────────────────────────────
 auth_logs = []
 for _ in range(NUM_AUTH_LOGS):
     transaction = random.choice(transactions)
@@ -112,9 +87,6 @@ for _ in range(NUM_AUTH_LOGS):
         'auth_timestamp': transaction['timestamp']
     })
 
-# ────────────────────────────────────────
-# 🔄 CUSTOMER-DEVICE
-# ────────────────────────────────────────
 customer_device = []
 for _ in range(NUM_CUSTOMERS * 3):
     customer = random.choice(customers)
@@ -126,13 +98,10 @@ for _ in range(NUM_CUSTOMERS * 3):
         'added_at': fake.date_time_this_year()
     })
 
-# ────────────────────────────────────────
-# 📤 EXPORT CSVs
-# ────────────────────────────────────────
 def export_csv(data, filename):
     path = os.path.join(OUTPUT_DIR, filename)
     pd.DataFrame(data).to_csv(path, index=False, date_format="%Y-%m-%d %H:%M:%S")
-    print(f"✅ Exported: {filename}")
+    print(f"Exported: {filename}")
 
 export_csv(customers, "customers.csv")
 export_csv(devices, "devices.csv")
