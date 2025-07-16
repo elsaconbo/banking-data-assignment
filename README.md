@@ -109,15 +109,14 @@ The dashboard displays:
 banking-data-assignment/
 ├── sql/
 │   ├── schema.sql
-│   └── reporting_queries.sql
 ├── src/
 │   ├── generate_data.py
 │   ├── data_quality_standards.py
 │   └── monitoring_audit.py
 ├── dags_or_jobs/
 │   └── banking_dq_dag.py
-├── data/         # generated CSVs
-├── logs/         # output log files
+├── data/         
+├── logs/         
 ├── visualization/
 ├── docker-compose.yml
 └── README.md
