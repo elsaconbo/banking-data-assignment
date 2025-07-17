@@ -98,7 +98,7 @@ The dashboard displays:
 * Number of risky transactions
 * Number of data quality issues by category
 * Count of unverified devices by customer
-
+(can filter by time periods)
 ![superset](https://github.com/user-attachments/assets/f37c5a21-69e9-4b53-838f-c0335694c31d)
 
 ---
