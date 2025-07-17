@@ -2,17 +2,12 @@ import os
 import pandas as pd
 from datetime import datetime
 
-# ────────────────────────────────────────
-# 📂 Chuẩn hóa đường dẫn
-# ────────────────────────────────────────
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))        # /src
-DATA_DIR = os.path.join(BASE_DIR, "..", "data")              # /data
-LOG_DIR = os.path.join(BASE_DIR, "..", "logs")               # /logs
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))       
+DATA_DIR = os.path.join(BASE_DIR, "..", "data")             
+LOG_DIR = os.path.join(BASE_DIR, "..", "logs")               
 os.makedirs(LOG_DIR, exist_ok=True)
 
-# ────────────────────────────────────────
-# 📥 Load dữ liệu
-# ────────────────────────────────────────
+
 customers = pd.read_csv(os.path.join(DATA_DIR, "customers.csv"))
 devices = pd.read_csv(os.path.join(DATA_DIR, "devices.csv"))
 accounts = pd.read_csv(os.path.join(DATA_DIR, "accounts.csv"))
@@ -22,9 +17,7 @@ customer_device = pd.read_csv(os.path.join(DATA_DIR, "customer_device.csv"))
 
 results = []
 
-# ────────────────────────────────────────
-# 🧾 Hàm ghi log kiểm tra
-# ────────────────────────────────────────
+
 def log_result(check_name, table, column, status, affected_rows=0, sample_values=None, message=""):
     log_entry = {
         "check_time": datetime.now().isoformat(),
@@ -42,9 +35,7 @@ def log_result(check_name, table, column, status, affected_rows=0, sample_values
     else:
         print(f"✅ {check_name} passed for {table}.{column}")
 
-# ────────────────────────────────────────
-# ✅ Check 1: Null
-# ────────────────────────────────────────
+
 def check_nulls(df, df_name):
     null_counts = df.isnull().sum()
     for col, count in null_counts.items():
@@ -54,7 +45,6 @@ def check_nulls(df, df_name):
         else:
             log_result("null_check", df_name, col, "PASS")
 
-# ✅ Check 2: Uniqueness
 def check_unique(df, df_name, column):
     dup_df = df[df.duplicated(subset=[column], keep=False)]
     if not dup_df.empty:
@@ -63,7 +53,6 @@ def check_unique(df, df_name, column):
     else:
         log_result("uniqueness_check", df_name, column, "PASS")
 
-# ✅ Check 3: CCCD định dạng 12 chữ số
 def check_cccd_format(df):
     if "national_id" in df.columns and "national_number" in df.columns:
         invalid = df[(df["national_id"] == "CCCD") &
@@ -74,7 +63,6 @@ def check_cccd_format(df):
         else:
             log_result("regex_check_cccd", "Customer", "national_number", "PASS")
 
-# ✅ Check 4: Foreign Key
 def check_fk(child_df, parent_df, child_col, parent_col, child_table, parent_table):
     unmatched = ~child_df[child_col].isin(parent_df[parent_col])
     if unmatched.any():
@@ -84,9 +72,7 @@ def check_fk(child_df, parent_df, child_col, parent_col, child_table, parent_tab
     else:
         log_result("foreign_key_check", child_table, child_col, "PASS")
 
-# ────────────────────────────────────────
-# 🔍 Chạy tất cả các kiểm tra
-# ────────────────────────────────────────
+
 
 # Null checks
 for df, name in [(customers, "Customer"), (devices, "Device"), (accounts, "Account"),
@@ -112,9 +98,7 @@ check_fk(auth_logs, transactions, "transaction_id", "transaction_id", "AuthLog",
 check_fk(customer_device, customers, "customer_id", "customer_id", "CustomerDevice", "Customer")
 check_fk(customer_device, devices, "device_id", "device_id", "CustomerDevice", "Device")
 
-# ────────────────────────────────────────
-# 📄 Export log kết quả
-# ────────────────────────────────────────
+
 dq_result = pd.DataFrame(results)
 
 if dq_result.empty or all(dq_result["status"] == "PASS"):
