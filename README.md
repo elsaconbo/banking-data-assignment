@@ -100,7 +100,8 @@ The dashboard displays:
 * Count of unverified devices by customer
 
 (can filter by time periods)
-![superset](https://github.com/user-attachments/assets/f37c5a21-69e9-4b53-838f-c0335694c31d)
+![superset](https://github.com/user-attachments/assets/90211ba1-cdd1-4dcf-8f76-46ace6fa6491)
+
 
 ---
 
