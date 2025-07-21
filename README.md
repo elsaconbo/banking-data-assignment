@@ -1,145 +1,131 @@
-# Banking Data Quality & Risk Monitoring Platform
+# Banking Data Quality and Risk Detection Platform
 
-## Candidate Information
-
-- **Name**: Nguyen Duy Hai
-- **Submission for**: Data Engineer Intern – Timo
+**Candidate**: Nguyen Duy Hai  
+**Submission for**: Case Study Assignment - Data Engineer Intern at Timo
 
 ---
 
 ## 1. Project Overview
 
-This project simulates a miniature banking data environment to validate data quality and detect risky transactions, based on compliance with regulation **2345/QĐ-NHNN 2023**.
+This project simulates a secure banking data pipeline that:
 
-### Key Objectives:
-
-- Generate realistic synthetic banking data for **individual customers**
-- Perform extensive **data quality validations**
-- Detect high-risk transactions through rule-based monitoring
-- Export all **violations into log files** for traceability
+- Generates synthetic data for banking operations: customers, devices, accounts, transactions, authentication logs.
+- Performs data quality validation.
+- Detects potential violations based on compliance rules from Decision **2345/QĐ-NHNN (2023)**.
+- Logs violations and prepares insights for downstream analysis.
 
 ---
 
 ## 2. System Architecture
 
-The system is implemented as a modular Python-based ETL pipeline, with Airflow DAG orchestration and optional Superset visualization.
-
-### Components:
-
-- `generate_data.py`: Generates customer, account, transaction, and device data
-- `data_quality_standards.py`: Validates nulls, foreign keys, formats, and consistency rules
-- `monitoring_audit.py`: Applies fraud/risk detection based on transaction types and authentication methods
-- Output logs saved in `/data/violations/`
-- Airflow orchestrates the pipeline; Superset can be used for dashboards (optional)
+- **Data Generation**: `generate_data.py`
+- **Data Quality Validation**: `data_quality_standards.py`
+- **Risk & Compliance Monitoring**: `monitoring_audit.py`
+- **Workflow Orchestration**: Apache Airflow DAG (`banking_dq_dag.py`)
+- **Visualization (Optional)**: Superset dashboard
+- **Logs Output**: Stored in `logs/` and `data/violations/`
 
 ---
 
-## 3. Functional Features
+## 3. Risk Detection Rules (Based on 2345/QĐ-NHNN)
 
-### 3.1 Data Quality Rules
+The following rules are enforced only for `INDIVIDUAL` customer type:
 
-- **Null Checks**: Required fields in all entities must not be null
-- **Uniqueness Checks**: `national_number` must be unique for INDIVIDUAL customers
-- **Format Validation**:
-  - `national_number` must be 12 digits if CCCD
-  - Timestamps must match `YYYY-MM-DD HH:MM:SS`
-- **Foreign Key Integrity**:
-  - Accounts → Customers
-  - Transactions → Accounts, Devices
-  - AuthLogs → Transactions
-  - CustomerDevice → Customers, Devices
+| Transaction Type | Minimum Required Authentication Methods |
+|------------------|-------------------------------------------|
+| **A** (< 5M)     | PASSWORD or any higher-level method       |
+| **B** (5M - 20M) | OTP_SMS, OTP_EMAIL, MATRIX_CARD, SOFT_OTP_BASIC, SOFT_OTP_ADV, FIDO, BIOMETRIC |
+| **C** (> 20M - 1.5B) | BIOMETRIC_CCCD, BIOMETRIC_EID, BIOMETRIC_DB, SOFT_OTP_ADV, TWO_FACTOR |
+| **D** (> 1.5B)   | BIOMETRIC_* combined with SOFT_OTP_ADV / FIDO / SIGNATURE |
 
-### 3.2 Risk Detection Rules
+Additional checks:
 
-- **Transaction Category Authentication**:
-  - B: Requires OTP or Matrix Card
-  - C: Requires Biometric
-  - D: Requires Biometric FIDO or Token
-- **Balance Enforcement**:
-  - SAVINGS & CURRENT accounts cannot transact more than available balance
-- **Strong Auth on Large Volume**:
-  - If total transactions > 20M VND in 1 day → must include strong auth (e.g. biometric)
-- **Device Trust**:
-  - Transactions from unverified devices are flagged
+- ✅ High-value daily transactions (> 20M VND) must include at least one **strong authentication method** (e.g., biometric, soft/hard token).
+- ✅ All transactions must originate from a **trusted & verified device**.
+- ✅ Transactions must not exceed account balances.
 
 ---
 
-## 4. Setup Instructions
+## 4. Data Quality Checks
+
+- ✅ Null and missing value validation
+- ✅ Uniqueness constraints (e.g., customer_id, transaction_id)
+- ✅ CCCD must have exactly 12 digits (no letters/symbols)
+- ✅ Foreign key integrity between tables (e.g., transaction → account → customer)
+
+---
+
+## 5. Setup Instructions
 
 ### Prerequisites
+- Docker & Docker Compose
+- Python 3.9+ (for manual execution if needed)
 
-- Python 3.9+
-- Docker + Docker Compose (for Airflow + Superset, optional)
-
-### Installation
-
+### Step 1: Clone the repository
 ```bash
 git clone https://github.com/elsaconbo/banking-data-assignment.git
 cd banking-data-assignment
 ```
 
-### Run Locally (Manual)
-
-```bash
-python src/generate_data.py
-python src/data_quality_standards.py
-python src/monitoring_audit.py
-```
-
-### Run with Airflow
-
+### Step 2: Start Docker Compose
 ```bash
 docker-compose up --build
 ```
 
-Access:
+### Access Tools
+- Airflow: [http://localhost:8085](http://localhost:8085)
+- Superset (optional): [http://localhost:8088](http://localhost:8088)
 
-- Airflow UI: http://localhost:8085
-- Superset: http://localhost:8088 (if configured)
+---
 
-To trigger the full DAG:
+## 6. How to Run in Airflow
 
+Main DAG: `banking_data_quality_dag`
+
+Sequential Tasks:
+1. `generate_data`: generate sample data for testing
+2. `data_quality_check`: validate quality rules
+3. `risk_based_check`: detect rule violations
+
+Trigger the DAG:
 ```bash
 airflow dags trigger banking_data_quality_dag
 ```
 
 ---
 
-## 5. Directory Structure
-
+## 7. Repository Structure
 ```
 banking-data-assignment/
-├── data/
-│   ├── customers.csv
-│   ├── transactions.csv
-|   |__...
-│   └── violations/
-│       ├── data_quality_violations.log
-│       └── risk_violations.log
+├── sql/
+│   └── schema.sql
 ├── src/
 │   ├── generate_data.py
 │   ├── data_quality_standards.py
 │   └── monitoring_audit.py
 ├── dags_or_jobs/
 │   └── banking_dq_dag.py
-├── sql/
-│   └── schema.sql
-└── docker-compose.yml
+├── data/
+│   ├── *.csv
+│   └── violations/
+├── logs/
+├── docker-compose.yml
+└── README.md
 ```
 
 ---
 
-## 6. Assumptions & Notes
+## 8. Assumptions & Notes
 
-- All rules are applied only for `INDIVIDUAL` customer type
-- Synthetic data is generated randomly but aligned with business constraints
-- All authentication is simulated probabilistically (95% success rate by default)
-- CSV is used as the primary data source; DB integration is optional
+- All compliance logic is scoped for `INDIVIDUAL` customer types only.
+- Synthetic data respects constraints from Decision 2345/QĐ-NHNN.
+- Valid authentication methods are carefully mapped to transaction categories.
+- Higher-level auth methods (e.g., category D) can be used for lower-level transactions (e.g., A/B).
+- CSV files serve as the core data medium; relational database is optional.
 
 ---
 
-## 7. Contact
-
-- **Nguyen Duy Hai**
-- **Email**: nguyenduyhai1502@gmail.com
-- Looking forward to further discussions with the Timo team.
+## 9. Contact
+Nguyen Duy Hai  
+📧 Email: nguyenduyhai1502@gmail.com  
+Looking forward to your feedback in the interview process.
