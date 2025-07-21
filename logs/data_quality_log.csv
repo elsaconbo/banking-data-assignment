@@ -1,2 +1,0 @@
-check_time,check_name,table,column,status,affected_rows,sample_values,message
-2025-07-16T14:18:34.578995,regex_check_cccd,Customer,national_number,FAIL,6,"[47229580972, 85620688599, 99469962857, 9727673971, 76118656049]",Invalid CCCD format (not 12 digits)
