@@ -48,15 +48,24 @@ CREATE TABLE Transaction (
 CREATE INDEX idx_transaction_account_id ON Transaction(account_id);
 CREATE INDEX idx_transaction_device_id ON Transaction(device_id);
 
--- AUTH LOG (đa mục đích)
 CREATE TABLE AuthLog (
     auth_log_id CHAR(36) PRIMARY KEY,
     transaction_id CHAR(36) NOT NULL,
-    auth_method ENUM('OTP', 'BIOMETRIC') NOT NULL,
+    auth_method ENUM(
+        'PASSWORD',
+        'OTP_SMS', 'OTP_VOICE', 'OTP_EMAIL',
+        'MATRIX_CARD',
+        'SOFT_OTP_BASIC', 'SOFT_OTP_ADV',
+        'FIDO', 'SIGNATURE',
+        'BIOMETRIC_CCCD', 'BIOMETRIC_EID', 'BIOMETRIC_DB'
+    ) NOT NULL,
     auth_success BOOLEAN DEFAULT TRUE,
+    biometric_verified BOOLEAN DEFAULT FALSE,
+    biometric_source ENUM('CCCD_CHIP', 'ELECTRONIC_ID', 'BANK_DATABASE', 'NONE') DEFAULT 'NONE',
     auth_timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (transaction_id) REFERENCES Transaction(transaction_id)
 );
+
 CREATE INDEX idx_authlog_transaction_id ON AuthLog(transaction_id);
 
 
